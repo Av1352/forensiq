@@ -2,6 +2,8 @@ import torch
 import numpy as np
 import cv2
 import timm
+import base64
+import io
 from torchvision import transforms
 from PIL import Image
 
@@ -67,36 +69,10 @@ class GradCAM:
         return cam, target_class, float(probs[target_class].item())
 
 
-def analyze_image(pil_image: Image.Image):
-    """
-    Runs inference + Grad-CAM on a PIL image.
-    Returns: verdict, confidence, overlay_image (PIL), region_activations (list of dicts)
-    """
-    model = get_model()
-    img = pil_image.convert('RGB')
-    img_tensor = transform(img).unsqueeze(0).to(device)
-
-    gradcam = GradCAM(model)
-    cam, pred_class, confidence = gradcam.generate_cam(img_tensor)
-
-    img_resized = cv2.resize(np.array(img), (224, 224))
-    heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
-    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-    overlay = heatmap * 0.4 + img_resized * 0.6
-    overlay = np.uint8(overlay)
-
-    overlay_image = Image.fromarray(overlay)
-    verdict = "FAKE" if pred_class == 1 else "REAL"
-
-    region_activations = extract_region_activations(cam)
-
-    return {
-        "verdict": verdict,
-        "confidence": round(confidence * 100, 1),
-        "overlay_image": overlay_image,
-        "original_resized": Image.fromarray(img_resized),
-        "region_activations": region_activations
-    }
+def image_to_base64(pil_image: Image.Image) -> str:
+    buf = io.BytesIO()
+    pil_image.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
 REGION_LABELS = {
@@ -123,3 +99,32 @@ def extract_region_activations(cam, grid=3):
                 "activation": float(np.mean(cell))
             })
     return sorted(scores, key=lambda x: x["activation"], reverse=True)
+
+
+def analyze_image(pil_image: Image.Image):
+    model = get_model()
+    img = pil_image.convert('RGB')
+    img_tensor = transform(img).unsqueeze(0).to(device)
+
+    gradcam = GradCAM(model)
+    cam, pred_class, confidence = gradcam.generate_cam(img_tensor)
+
+    img_resized = cv2.resize(np.array(img), (224, 224))
+    heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+    overlay = heatmap * 0.4 + img_resized * 0.6
+    overlay = np.uint8(overlay)
+
+    overlay_image = Image.fromarray(overlay)
+    original_image = Image.fromarray(img_resized)
+    verdict = "FAKE" if pred_class == 1 else "REAL"
+
+    region_activations = extract_region_activations(cam)
+
+    return {
+        "verdict": verdict,
+        "confidence": round(confidence * 100, 1),
+        "overlay_base64": image_to_base64(overlay_image),
+        "original_base64": image_to_base64(original_image),
+        "region_activations": region_activations
+    }

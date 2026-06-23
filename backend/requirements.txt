@@ -1,9 +1,10 @@
-streamlit
+fastapi
+uvicorn
+python-multipart
 torch
 torchvision
 timm
 opencv-python-headless
-matplotlib
 numpy
 pillow
 anthropic

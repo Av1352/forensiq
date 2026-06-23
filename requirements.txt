@@ -1,0 +1,10 @@
+streamlit
+torch
+torchvision
+timm
+opencv-python-headless
+matplotlib
+numpy
+pillow
+anthropic
+python-dotenv

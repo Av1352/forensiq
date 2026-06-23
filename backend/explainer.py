@@ -23,7 +23,7 @@ The model's attention (Grad-CAM saliency) was strongest in these facial regions,
 Write exactly one paragraph (3-4 sentences) in plain, professional language explaining why this image was flagged as {verdict.lower()}, referencing the specific facial regions where the model focused. Write as if for a human investigator reviewing a case, not a technical audience. Do not use hedging language like "may" or "could possibly" — state findings directly but accurately. Do not mention "Grad-CAM" or "saliency" by name — describe it as "the model's attention" or "regions of focus"."""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=300,
         messages=[{"role": "user", "content": prompt}]
     )

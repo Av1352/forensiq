@@ -5,3 +5,4 @@ dist/
 __pycache__/
 *.pyc
 backend/models/*.pth
+.venv

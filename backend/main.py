@@ -9,7 +9,7 @@ from explainer import generate_forensic_explanation
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://forensiq.vercel.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
